@@ -1,5 +1,5 @@
 ## Introduction
-Adafruit's LED animation library supports some really cool effects and building blocks, while using a time-slicing approach that doesn't block the program execution. Animation Extrras is a collection of code that builds on the core functionality.
+Adafruit's LED animation library supports some really cool effects and building blocks, while using a time-slicing approach that doesn't block the program execution. Animation Extras is a collection of code that builds on the core functionality.
 
 ## Dependencies
 This code depends on:
@@ -67,7 +67,7 @@ while True:
 ## What's Included
 **sprite_animation.py**
 
-* `Sprite`: Creates an animation from a vertical bitmap spritesheet, displaying a different frame of the spritesheet on each `animate()` call.
+* `Sprite`: Creates an animation from a vertical or horizontal bitmap spritesheet, displaying a different frame of the spritesheet on each `animate()` call.
 
 **textscroll_animation.py**
 
