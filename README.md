@@ -45,7 +45,7 @@ bitmap, palette = adafruit_imageload.load('/bmps/flame_simple.bmp')
 flame_sprite = Sprite(grid, 0.25, bitmap, palette)
 
 # TextScroll defaults to using 'font5x8.bin' so make sure the file is on the device
-text_scroll = TextScroll(grid, 0.1, 'Hellow World', color=AMBER)
+text_scroll = TextScroll(grid, 0.1, 'Hello World', color=AMBER)
 
 # Create a rectangular pattern
 pixel_rectangular = rectangular_lines(pixels, 8, 8, helper.horizontal_strip_gridmap(8, alternating=False))
