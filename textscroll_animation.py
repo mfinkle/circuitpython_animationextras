@@ -17,7 +17,7 @@ class TextScroll(Animation):
     on_cycle_complete_supported = True
 
     def _get_color(self, x, y):
-        return self.color
+       return self.color
 
     def draw(self):
         self._fb.fill(0x000000)

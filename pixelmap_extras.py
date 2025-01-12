@@ -8,7 +8,7 @@ def rectangular_lines(pixel_object, width, height, gridmap):
     :param width: width of grid
     :param height: height of grid
     :param gridmap: a function to map x and y coordinates to the grid
-                        see vertical_strip_gridmap and horizontal_strip_gridmap
+                    see vertical_strip_gridmap and horizontal_strip_gridmap
     :return: PixelMap
     """
     if len(pixel_object) < width * height:
@@ -29,7 +29,7 @@ def rectangular_lines(pixel_object, width, height, gridmap):
     start = 0
     stop = height
     for x in range(width // 2):
-        mapping[x] += [gridmap(x, y) for y in range(start, stop)] + [gridmap(width - 1 -x, y) for y in range(start, stop)]
+        mapping[x] += [gridmap(x, y) for y in range(start, stop)] + [gridmap(width - 1 - x, y) for y in range(start, stop)]
         start += 1
         stop -= 1
 
