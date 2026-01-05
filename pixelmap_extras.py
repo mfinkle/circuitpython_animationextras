@@ -1,6 +1,5 @@
 from adafruit_led_animation.helper import PixelMap
 
-
 def rectangular_lines(pixel_object, width, height, gridmap):
     """
     Generate a PixelMap of rectangular concentric lines arranged in a grid.
@@ -34,6 +33,41 @@ def rectangular_lines(pixel_object, width, height, gridmap):
         stop -= 1
 
     # Note: we've added the corners into the mapping groups twice and could remove them to be more efficient
+
+    return PixelMap(pixel_object, mapping, individual_pixels=True)
+
+
+def diagonal_lines(pixel_object, width, height, gridmap):
+    """
+    Generate a PixelMap of rectangular concentric lines arranged in a grid.
+    :param pixel_object: pixel object
+    :param width: width of grid
+    :param height: height of grid
+    :param gridmap: a function to map x and y coordinates to the grid
+                    see vertical_strip_gridmap and horizontal_strip_gridmap
+    :return: PixelMap
+    """
+    if len(pixel_object) < width * height:
+        raise ValueError("number of pixels is less than width x height")
+
+    if width != height:
+        raise ValueError("only works on a square grid")
+
+    # We collect the groups of pixels ion this mapping list of lists
+    mapping = []
+
+    primary_diagonals = {}
+
+    for x in range(width):
+        for y in range(height):
+            # Primary diagonals (↘)
+            primary_key = x - y
+            if primary_key not in primary_diagonals:
+                primary_diagonals[primary_key] = []
+            primary_diagonals[primary_key].append(gridmap(x, y))
+
+    for key in sorted(primary_diagonals):
+        mapping.append(primary_diagonals[key])
 
     return PixelMap(pixel_object, mapping, individual_pixels=True)
 
