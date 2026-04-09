@@ -193,53 +193,98 @@ class CountdownScroll(Animation):
         # Get days remaining
         days_remaining = self._get_days_remaining()
 
-        # Build countdown text
-        if days_remaining == 0:
-            countdown_text = 'Today is '
-        else:
-            countdown_text = "{} day".format(days_remaining)
-            if days_remaining != 1:
-                countdown_text += "s"
-            countdown_text += " til "
-
-        # Calculate text width for countdown portion
-        countdown_width = len(countdown_text) * (char_width + 1)
-
-        # Calculate y position to center text vertically
-        y_pos = (self.pixel_object.height - char_height) // 2
+        # Check if we can fit two lines of text (16px+ height needed)
+        can_fit_two_lines = (self.pixel_object.height >= char_height * 2)
 
         # Draw the scrolling content
         x_offset = self.pixel_object.width - self._frame
+        center_y = (self.pixel_object.height - char_height) // 2
 
-        if self._use_bitmap:
-            # Draw countdown text (in color)
-            self._fb.text(countdown_text, x_offset, y_pos, color_to_int(self.color), font_name=self._font_name)
+        # Determine text color based on mode
+        text_color = color_to_int(self.color) if self._use_bitmap else 0xFFFFFF
 
-            # Draw bitmap after the text
-            # Assume square bitmap
-            bitmap_size = self._bitmap.width
-            bitmap_x = x_offset + countdown_width
-            bitmap_y = (self.pixel_object.height - bitmap_size) // 2
+        if can_fit_two_lines and days_remaining > 0:
+            # Multi-line layout: Section 1 (number/days stacked) + Section 2 (til) + Section 3 (event/bitmap)
 
-            for bx in range(bitmap_size):
-                for by in range(bitmap_size):
-                    pixel_x = bitmap_x + bx
-                    pixel_y = bitmap_y + by
-                    # Only draw if within framebuffer bounds
-                    if 0 <= pixel_x < self._fb.width and 0 <= pixel_y < self._fb.height:
-                        palette_index = self._bitmap[bx, by]
-                        color_rgb = self._palette[palette_index]
-                        self._fb.pixel(pixel_x, pixel_y, color_to_int(color_rgb))
+            # Section 1: Number (top) and "days" (bottom) stacked
+            number_text = str(days_remaining)
+            days_label = "day" if days_remaining == 1 else "days"
 
-            # Calculate total scroll width (text + bitmap)
-            scroll_width = countdown_width + bitmap_size
+            self._fb.text(number_text, x_offset, 0, text_color, font_name=self._font_name)
+            self._fb.text(days_label, x_offset, self.pixel_object.height - char_height, 0xFFFFFF if self._use_bitmap else 0xFFFFFF, font_name=self._font_name)
+
+            number_width = len(number_text) * (char_width + 1)
+            days_width = len(days_label) * (char_width + 1)
+            section1_width = max(number_width, days_width)
+
+            # Section 2: "til " text (vertically centered)
+            til_text = "til "
+            til_width = len(til_text) * (char_width + 1)
+            section2_x = x_offset + section1_width
+
+            self._fb.text(til_text, section2_x, center_y, text_color, font_name=self._font_name)
+
+            # Section 3: Event name or bitmap (vertically centered)
+            section3_x = section2_x + til_width
+
+            if self._use_bitmap:
+                # Draw bitmap
+                bitmap_size = self._bitmap.width
+                bitmap_y = (self.pixel_object.height - bitmap_size) // 2
+
+                for bx in range(bitmap_size):
+                    for by in range(bitmap_size):
+                        pixel_x = section3_x + bx
+                        pixel_y = bitmap_y + by
+                        if 0 <= pixel_x < self._fb.width and 0 <= pixel_y < self._fb.height:
+                            palette_index = self._bitmap[bx, by]
+                            color_rgb = self._palette[palette_index]
+                            self._fb.pixel(pixel_x, pixel_y, color_to_int(color_rgb))
+
+                section3_width = bitmap_size
+            else:
+                # Draw event name text
+                self._fb.text(self._event_name, section3_x, center_y, 0xFFFFFF, font_name=self._font_name)
+                section3_width = len(self._event_name) * (char_width + 1)
+
+            scroll_width = section1_width + til_width + section3_width
         else:
-            # Text-only mode: draw countdown + event name
-            full_text = countdown_text + self._event_name
-            self._fb.text(full_text, x_offset, y_pos, 0xFFFFFF, font_name=self._font_name)
+            # Single-line fallback for "Today is" or 8x8 displays
+            if days_remaining == 0:
+                prefix_text = 'Today is '
+            else:
+                prefix_text = "{} day".format(days_remaining)
+                if days_remaining != 1:
+                    prefix_text += "s"
+                prefix_text += " til "
 
-            # Calculate total scroll width
-            scroll_width = len(full_text) * (char_width + 1)
+            prefix_width = len(prefix_text) * (char_width + 1)
+
+            self._fb.text(prefix_text, x_offset, center_y, text_color, font_name=self._font_name)
+
+            suffix_x = x_offset + prefix_width
+
+            if self._use_bitmap:
+                # Draw bitmap
+                bitmap_size = self._bitmap.width
+                bitmap_y = (self.pixel_object.height - bitmap_size) // 2
+
+                for bx in range(bitmap_size):
+                    for by in range(bitmap_size):
+                        pixel_x = suffix_x + bx
+                        pixel_y = bitmap_y + by
+                        if 0 <= pixel_x < self._fb.width and 0 <= pixel_y < self._fb.height:
+                            palette_index = self._bitmap[bx, by]
+                            color_rgb = self._palette[palette_index]
+                            self._fb.pixel(pixel_x, pixel_y, color_to_int(color_rgb))
+
+                suffix_width = bitmap_size
+            else:
+                # Draw event name text
+                self._fb.text(self._event_name, suffix_x, center_y, 0xFFFFFF, font_name=self._font_name)
+                suffix_width = len(self._event_name) * (char_width + 1)
+
+            scroll_width = prefix_width + suffix_width
 
         # Copy framebuffer to pixel object
         if self._use_bitmap:
